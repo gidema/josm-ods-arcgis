@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ods>
+  <import type="host" name="ArcgisRest" class="org.openstreetmap.josm.plugins.ods.arcgis.rest.AGRestHost"/>
+</ods>
