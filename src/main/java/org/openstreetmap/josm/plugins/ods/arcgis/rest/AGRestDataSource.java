@@ -1,13 +1,12 @@
 package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
-import java.util.Set;
-
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.plugins.ods.AbstractOdsDataSource;
 import org.openstreetmap.josm.plugins.ods.DownloadJob;
-import org.openstreetmap.josm.plugins.ods.ImportDataLayer;
+import org.openstreetmap.josm.plugins.ods.DownloadTask;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
-import org.openstreetmap.josm.plugins.ods.entities.Entity;
+import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDataLayer;
+import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDownloadTask;
 
 public class AGRestDataSource extends AbstractOdsDataSource {
 
@@ -16,7 +15,7 @@ public class AGRestDataSource extends AbstractOdsDataSource {
   }
 
   @Override
-  public DownloadJob createDownloadJob(ImportDataLayer dataLayer, Bounds bounds, Set<Entity> newEntities) {
-    return new AGRestDownloadJob(this, dataLayer, bounds, newEntities);
+  public ExternalDownloadTask createDownloadTask(Bounds bounds) {
+    return new AGRestDownloadTask(this, bounds);
   }
 }

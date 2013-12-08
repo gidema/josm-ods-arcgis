@@ -13,33 +13,36 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.josm.data.Bounds;
-import org.openstreetmap.josm.plugins.ods.DownloadJob;
-import org.openstreetmap.josm.plugins.ods.ImportDataLayer;
+import org.openstreetmap.josm.plugins.ods.OdsDataSource;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
-import org.openstreetmap.josm.plugins.ods.entities.BuildException;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
-import org.openstreetmap.josm.plugins.ods.entities.imported.ImportedEntityBuilder;
+import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDataLayer;
+import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDownloadTask;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 //import org.openstreetmap.josm.plugins.ods.crs.JTSCoordinateTransform;
 //import org.openstreetmap.josm.plugins.ods.crs.JTSCoordinateTransformFactory;
 //import org.openstreetmap.josm.plugins.ods.crs.Proj4jCRSTransformFactory;
 
-public class AGRestDownloadJob implements DownloadJob {
+public class AGRestDownloadTask implements ExternalDownloadTask {
     AGRestDataSource dataSource;
     AGRestFeatureSource featureSource;
     Bounds bounds;
     SimpleFeatureCollection featureCollection;
     MetaData metaData;
-    ImportDataLayer dataLayer;
+    ExternalDataLayer dataLayer;
+    List<SimpleFeature> features;
     Set<Entity> newEntities;
 
-    public AGRestDownloadJob(AGRestDataSource dataSource, ImportDataLayer dataLayer, Bounds bounds, Set<Entity> newEntities) {
+    public AGRestDownloadTask(AGRestDataSource dataSource, Bounds bounds) {
         this.dataSource = dataSource;
-        this.dataLayer = dataLayer;
         this.bounds = bounds;
-        this.newEntities = newEntities;
     }
+
+	@Override
+	public OdsDataSource getDataSource() {
+		return dataSource;
+	}
 
     @Override
     public Callable<?> getPrepareCallable() {
@@ -67,27 +70,16 @@ public class AGRestDownloadJob implements DownloadJob {
 
             @Override
             public Object call() throws ExecutionException {
-                List<SimpleFeature> featureList = new LinkedList<SimpleFeature>();
+                features = new LinkedList<SimpleFeature>();
                 try {
                     RestQuery query = getQuery();
                     AGRestReader reader = new AGRestReader(query,
                             featureSource.getFeatureType());
                     SimpleFeatureIterator it = reader.getFeatures().features();
                     while (it.hasNext()) {
-                        featureList.add(it.next());
+                        features.add(it.next());
                     }
                 } catch (Exception e) {
-                    throw new ExecutionException(e.getMessage(), e.getCause());
-                }
-                ImportedEntityBuilder builder = dataSource.getEntityBuilder();
-                try {
-                    for (SimpleFeature feature : featureList) {
-                        Entity entity = builder.build(feature);
-                        if (dataLayer.getEntitySet().add(entity)) {
-                            newEntities.add(entity);
-                        };
-                    }
-                } catch (BuildException e) {
                     throw new ExecutionException(e.getMessage(), e.getCause());
                 }
                 return null;
@@ -118,8 +110,8 @@ public class AGRestDownloadJob implements DownloadJob {
             envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY());
    }
 
-    @Override
-    public Set<Entity> getNewEntities() {
-        return newEntities;
-    }
+	@Override
+	public List<SimpleFeature> getFeatures() {
+		return features;
+	}
 }
