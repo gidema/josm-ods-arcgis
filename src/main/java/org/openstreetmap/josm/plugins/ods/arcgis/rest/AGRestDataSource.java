@@ -7,6 +7,7 @@ import org.openstreetmap.josm.plugins.ods.DownloadTask;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
 import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDataLayer;
 import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDownloadTask;
+import org.openstreetmap.josm.plugins.ods.jts.Boundary;
 
 public class AGRestDataSource extends AbstractOdsDataSource {
 
@@ -15,7 +16,7 @@ public class AGRestDataSource extends AbstractOdsDataSource {
   }
 
   @Override
-  public ExternalDownloadTask createDownloadTask(Bounds bounds) {
-    return new AGRestDownloadTask(this, bounds);
+  public ExternalDownloadTask createDownloadTask(Boundary boundary) {
+    return new AGRestDownloadTask(this, boundary);
   }
 }

@@ -12,13 +12,13 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.plugins.ods.OdsDataSource;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
 import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDataLayer;
 import org.openstreetmap.josm.plugins.ods.entities.external.ExternalDownloadTask;
+import org.openstreetmap.josm.plugins.ods.jts.Boundary;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 //import org.openstreetmap.josm.plugins.ods.crs.JTSCoordinateTransform;
 //import org.openstreetmap.josm.plugins.ods.crs.JTSCoordinateTransformFactory;
@@ -27,17 +27,35 @@ import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 public class AGRestDownloadTask implements ExternalDownloadTask {
     AGRestDataSource dataSource;
     AGRestFeatureSource featureSource;
-    Bounds bounds;
+    Boundary boundary;
     SimpleFeatureCollection featureCollection;
     MetaData metaData;
     ExternalDataLayer dataLayer;
     List<SimpleFeature> features;
     Set<Entity> newEntities;
+    private boolean cancelled = false;
+    private boolean failed = false;
+    private Exception exception = null;
 
-    public AGRestDownloadTask(AGRestDataSource dataSource, Bounds bounds) {
+    public AGRestDownloadTask(AGRestDataSource dataSource, Boundary boundary) {
         this.dataSource = dataSource;
-        this.bounds = bounds;
+        this.boundary = boundary;
     }
+
+	@Override
+	public boolean cancelled() {
+		return cancelled;
+	}
+
+	@Override
+	public boolean failed() {
+		return failed;
+	}
+
+	@Override
+	public Exception getException() {
+		return exception;
+	}
 
 	@Override
 	public OdsDataSource getDataSource() {
@@ -45,18 +63,19 @@ public class AGRestDownloadTask implements ExternalDownloadTask {
 	}
 
     @Override
-    public Callable<?> getPrepareCallable() {
+    public Callable<Object> getPrepareCallable() {
         return new Callable<Object>() {
 
             @Override
-            public Object call() throws ExecutionException {
+            public Object call() {
                 try {
                     dataSource.initialize();
                     metaData = dataSource.getMetaData();
                     featureSource = (AGRestFeatureSource) dataSource
                             .getOdsFeatureSource();
                 } catch (Exception e) {
-                    throw new ExecutionException(e.getMessage(), e.getCause());
+                	failed = true;
+                	exception = e;
                 }
                 return null;
             }
@@ -97,15 +116,15 @@ public class AGRestDownloadTask implements ExternalDownloadTask {
         query.setFeatureSource(featureSource);
         query.setInSR(featureSource.getSRID());
         query.setOutSR(featureSource.getSRID());
-        query.setGeometry(formatBounds(bounds, query.getInSR()));
+        query.setGeometry(formatBounds(boundary, query.getInSR()));
         query.setOutFields("*");
         return query;
     }
 
-    private static String formatBounds(Bounds bounds, Long srid) throws CRSException {
+    private static String formatBounds(Boundary boundary, Long srid) throws CRSException {
         CRSUtil crsUtil = CRSUtil.getInstance();
         CoordinateReferenceSystem crs = crsUtil.getCrs(srid);
-        ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs, bounds);
+        ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs, boundary.getBounds());
         return String.format(Locale.ENGLISH, "%f,%f,%f,%f", envelope.getMinX(),
             envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY());
    }
@@ -113,5 +132,10 @@ public class AGRestDownloadTask implements ExternalDownloadTask {
 	@Override
 	public List<SimpleFeature> getFeatures() {
 		return features;
+	}
+
+	@Override
+	public void operationCanceled() {
+		cancelled = true;
 	}
 }
