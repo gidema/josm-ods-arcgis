@@ -29,7 +29,8 @@ public class AGRestFeatureSource implements OdsFeatureSource {
     this.featureId = Long.valueOf(parts[1]);
   }
 
-  final AGRestHost getHost() {
+	@Override
+	public final AGRestHost getHost() {
     return host;
   }
 
