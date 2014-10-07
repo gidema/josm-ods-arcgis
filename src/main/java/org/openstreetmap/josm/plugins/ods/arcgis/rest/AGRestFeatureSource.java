@@ -2,6 +2,7 @@ package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
 import java.io.IOException;
 
+import org.geotools.data.simple.SimpleFeatureSource;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -20,7 +21,7 @@ public class AGRestFeatureSource implements OdsFeatureSource {
   private FeatureType featureType;
   private MetaData metaData;
 
-  protected AGRestFeatureSource(AGRestHost host, String feature) {
+  public AGRestFeatureSource(AGRestHost host, String feature) {
     super();
     this.host = host;
     this.feature = feature;
@@ -92,4 +93,11 @@ public class AGRestFeatureSource implements OdsFeatureSource {
   public OdsDataSource newDataSource() {
     return new AGRestDataSource(this);
   }
+
+    // @Override
+    // public SimpleFeatureSource getFeatureSource() {
+    // // TODO Auto-generated method stub
+    // return null;
+    // }
+    //
 }

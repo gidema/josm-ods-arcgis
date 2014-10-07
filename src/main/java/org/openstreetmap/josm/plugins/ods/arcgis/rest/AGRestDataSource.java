@@ -1,20 +1,11 @@
 package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
-import org.openstreetmap.josm.data.Bounds;
-import org.openstreetmap.josm.plugins.ods.AbstractOdsDataSource;
-import org.openstreetmap.josm.plugins.ods.DownloadJob;
-import org.openstreetmap.josm.plugins.ods.DownloadTask;
+import org.openstreetmap.josm.plugins.ods.DefaultOdsDataSource;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
-import org.openstreetmap.josm.plugins.ods.jts.Boundary;
 
-public class AGRestDataSource extends AbstractOdsDataSource {
+public class AGRestDataSource extends DefaultOdsDataSource {
 
-  protected AGRestDataSource(OdsFeatureSource odsFeatureSource) {
+  public AGRestDataSource(OdsFeatureSource odsFeatureSource) {
     super(odsFeatureSource);
-  }
-
-  @Override
-  public DownloadTask createDownloadTask(Boundary boundary) {
-    return new AGRestDownloadTask(this, boundary);
   }
 }

@@ -13,8 +13,13 @@ public class AGRestHost extends Host {
   private boolean initialized = false;
   private List<String> featureTypes;
 
-  @Override
-  public void initialize() throws InitializationException {
+  
+  public AGRestHost(String name, String url, Integer maxFeatures) {
+    super(name, url, maxFeatures);
+}
+
+@Override
+  public synchronized void initialize() throws InitializationException {
     if (initialized) return;
     HttpRequest request = new HttpRequest();
     try {
