@@ -6,6 +6,6 @@ import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
 public class AGRestDataSource extends DefaultOdsDataSource {
 
   public AGRestDataSource(OdsFeatureSource odsFeatureSource) {
-    super(odsFeatureSource);
+    super(odsFeatureSource, null);
   }
 }

@@ -10,14 +10,15 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.openstreetmap.josm.plugins.ods.Context;
 import org.openstreetmap.josm.plugins.ods.Host;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
+import org.openstreetmap.josm.plugins.ods.entities.EntitySource;
 import org.openstreetmap.josm.plugins.ods.entities.EntityStore;
 import org.openstreetmap.josm.plugins.ods.entities.external.GeotoolsEntityBuilder;
 import org.openstreetmap.josm.plugins.ods.io.Downloader;
 import org.openstreetmap.josm.plugins.ods.io.Status;
-import org.openstreetmap.josm.plugins.ods.jts.Boundary;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 import org.openstreetmap.josm.plugins.ods.tasks.Task;
 import org.openstreetmap.josm.tools.I18n;
@@ -28,13 +29,14 @@ public class AGRestDownloader implements Downloader {
     private final GeotoolsEntityBuilder<?> entityBuilder;
     private final EntityStore<?> entityStore;
     private final List<Task> tasks;
+    private EntitySource entitySource;
 
     AGRestFeatureSource featureSource;
-    Boundary boundary;
     SimpleFeatureCollection featureCollection;
     MetaData metaData;
     private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
+    private Context ctx;
 
     public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil,
             GeotoolsEntityBuilder<?> entityBuilder, EntityStore<?> entityStore,
@@ -59,28 +61,30 @@ public class AGRestDownloader implements Downloader {
     private String formatBounds(Long srid) throws CRSException {
         CoordinateReferenceSystem crs = crsUtil.getCrs(srid);
         ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs,
-                boundary.getBounds());
+                entitySource.getBoundary().getBounds());
         return String.format(Locale.ENGLISH, "%f,%f,%f,%f", envelope.getMinX(),
                 envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY());
     }
 
-    @Override
-    public void setBoundary(Boundary boundary) {
-        this.boundary = boundary;
-    }
-
+//    @Override
+//    public void setBoundary(Boundary boundary) {
+//        this.boundary = boundary;
+//    }
+//
     @Override
     public Status getStatus() {
         return status;
     }
 
     @Override
-    public void prepare() throws InterruptedException {
+    public void prepare(Context ctxt) throws InterruptedException {
+        this.ctx = ctxt;
         try {
             dataSource.initialize();
             metaData = dataSource.getMetaData();
             featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
+            entitySource = (EntitySource) ctx.get("entitySource");
         } catch (Exception e) {
             status.setFailed(true);
             status.setException(e);
@@ -146,9 +150,9 @@ public class AGRestDownloader implements Downloader {
         for (SimpleFeature feature : downloadedFeatures) {
              entityBuilder.buildGtEntity(feature);
         }
-        entityStore.extendBoundary(boundary.getMultiPolygon());
+        entityStore.extendBoundary(entitySource.getBoundary().getMultiPolygon());
         for (Task task : tasks) {
-            task.run();
+            task.run(ctx);
         }
     }
 

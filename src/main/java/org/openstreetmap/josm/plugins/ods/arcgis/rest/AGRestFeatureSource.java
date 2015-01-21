@@ -2,8 +2,8 @@ package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
 import java.io.IOException;
 
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.filter.Filter;
 import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.josm.plugins.ods.InitializationException;
@@ -90,7 +90,7 @@ public class AGRestFeatureSource implements OdsFeatureSource {
   }
     
   @Override
-  public OdsDataSource newDataSource() {
+  public OdsDataSource newDataSource(Filter filter) {
     return new AGRestDataSource(this);
   }
 
