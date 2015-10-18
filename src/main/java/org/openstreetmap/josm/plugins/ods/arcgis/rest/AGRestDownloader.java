@@ -1,121 +1,85 @@
 package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
-import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.plugins.ods.Context;
 import org.openstreetmap.josm.plugins.ods.Host;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
-import org.openstreetmap.josm.plugins.ods.entities.EntitySource;
-import org.openstreetmap.josm.plugins.ods.entities.EntityStore;
+import org.openstreetmap.josm.plugins.ods.entities.external.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.entities.external.GeotoolsEntityBuilder;
-import org.openstreetmap.josm.plugins.ods.io.Downloader;
+import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 import org.openstreetmap.josm.plugins.ods.tasks.Task;
 import org.openstreetmap.josm.tools.I18n;
 
-public class AGRestDownloader implements Downloader {
+public class AGRestDownloader implements FeatureDownloader {
     private final AGRestDataSource dataSource;
     private final CRSUtil crsUtil;
     private final GeotoolsEntityBuilder<?> entityBuilder;
-    private final EntityStore<?> entityStore;
     private final List<Task> tasks;
-    private EntitySource entitySource;
 
-    AGRestFeatureSource featureSource;
-    SimpleFeatureCollection featureCollection;
-    MetaData metaData;
+    private AGRestFeatureSource featureSource;
+    private MetaData metaData;
     private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
-    private Context ctx;
+    private DownloadRequest request;
 
     public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil,
-            GeotoolsEntityBuilder<?> entityBuilder, EntityStore<?> entityStore,
-            List<Task> tasks) {
+            GeotoolsEntityBuilder<?> entityBuilder, List<Task> tasks) {
         this.crsUtil = crsUtil;
         this.dataSource = dataSource;
         this.entityBuilder = entityBuilder;
-        this.entityStore = entityStore;
-        this.tasks = tasks;
-    }
-
-    RestQuery getQuery() throws CRSException {
-        RestQuery query = new RestQuery();
-        query.setFeatureSource(featureSource);
-        query.setInSR(featureSource.getSRID());
-        query.setOutSR(featureSource.getSRID());
-        query.setGeometry(formatBounds(query.getInSR()));
-        query.setOutFields("*");
-        return query;
-    }
-
-    private String formatBounds(Long srid) throws CRSException {
-        CoordinateReferenceSystem crs = crsUtil.getCrs(srid);
-        ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs,
-                entitySource.getBoundary().getBounds());
-        return String.format(Locale.ENGLISH, "%f,%f,%f,%f", envelope.getMinX(),
-                envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY());
-    }
-
-//    @Override
-//    public void setBoundary(Boundary boundary) {
-//        this.boundary = boundary;
-//    }
-//
-    @Override
-    public Status getStatus() {
-        return status;
+        this.tasks = (tasks != null ? tasks : new ArrayList<Task>());
     }
 
     @Override
-    public void prepare(Context ctxt) throws InterruptedException {
-        this.ctx = ctxt;
+    public void setup(DownloadRequest request) {
+        this.request = request;
+    }
+
+    @Override
+    public void prepare() {
         try {
             dataSource.initialize();
             metaData = dataSource.getMetaData();
             featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
-            entitySource = (EntitySource) ctx.get("entitySource");
         } catch (Exception e) {
             status.setFailed(true);
             status.setException(e);
         }
     }
 
-    // @Override
-    // public void download() throws InterruptedException {
-    // features = new LinkedList<>();
-    // try {
-    // } catch (Exception e) {
-    // status.setFailed(true);
-    // status.setException(e);
-    // }
-    // }
-
     @Override
-    public void download() throws InterruptedException {
+    public void download() {
         downloadedFeatures = new DefaultFeatureCollection();
+        RestQuery query;
         try {
-            RestQuery query = getQuery();
-            AGRestReader reader = new AGRestReader(query,
-                    featureSource.getFeatureType());
+            query = getQuery();
+        } catch (CRSException e) {
+            throw new RuntimeException(e);
+        }
+        AGRestReader reader = new AGRestReader(query,
+                featureSource.getFeatureType());
+        try (
             SimpleFeatureIterator it = reader.getFeatures().features();
+        )  {
             while (it.hasNext()) {
                 downloadedFeatures.add(it.next());
             }
-        } catch (ArcgisServerRestException|NoSuchElementException|CRSException e) {
+        } catch (ArcgisServerRestException|NoSuchElementException e) {
             status.setFailed(true);
             status.setException(e);
-            throw new InterruptedException(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
         if (status.isCancelled()) {
             return;
@@ -150,11 +114,36 @@ public class AGRestDownloader implements Downloader {
         for (SimpleFeature feature : downloadedFeatures) {
              entityBuilder.buildGtEntity(feature);
         }
-        entityStore.extendBoundary(entitySource.getBoundary().getMultiPolygon());
+//        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
         for (Task task : tasks) {
-            task.run(ctx);
+//            task.run(ctx);
         }
     }
+
+//  @Override
+//  public Status getStatus() {
+//      return status;
+//  }
+
+
+    private RestQuery getQuery() throws CRSException {
+        RestQuery query = new RestQuery();
+        query.setFeatureSource(featureSource);
+        query.setInSR(featureSource.getSRID());
+        query.setOutSR(featureSource.getSRID());
+        query.setGeometry(formatBounds(query.getInSR()));
+        query.setOutFields("*");
+        return query;
+    }
+
+    private String formatBounds(Long srid) throws CRSException {
+        CoordinateReferenceSystem crs = crsUtil.getCrs(srid);
+        ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs,
+                request.getBoundary().getBounds());
+        return String.format(Locale.ENGLISH, "%f,%f,%f,%f", envelope.getMinX(),
+                envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY());
+    }
+
 
     @Override
     public void cancel() {

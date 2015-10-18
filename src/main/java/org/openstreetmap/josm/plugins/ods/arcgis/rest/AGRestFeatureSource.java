@@ -16,7 +16,6 @@ public class AGRestFeatureSource implements OdsFeatureSource {
   private boolean initialized = false;
   private final AGRestHost host;
   private final String feature;
-//  private String featureName;
   private final Long featureId;
   private FeatureType featureType;
   private MetaData metaData;
@@ -40,7 +39,13 @@ public class AGRestFeatureSource implements OdsFeatureSource {
     return featureType;
   }
   
+  
   @Override
+    public String getIdAttribute() {
+        return null;
+    }
+
+@Override
   public final String getFeatureName() {
     return String.format("%s:%s", host.getName(), feature);
   }
