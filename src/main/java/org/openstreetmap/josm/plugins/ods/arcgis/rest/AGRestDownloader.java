@@ -13,9 +13,10 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.josm.plugins.ods.Host;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
-import org.openstreetmap.josm.plugins.ods.entities.external.FeatureDownloader;
-import org.openstreetmap.josm.plugins.ods.entities.external.GeotoolsEntityBuilder;
+import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
+import org.openstreetmap.josm.plugins.ods.entities.opendata.GeotoolsEntityBuilder;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
+import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
 import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 import org.openstreetmap.josm.plugins.ods.tasks.Task;
@@ -44,6 +45,11 @@ public class AGRestDownloader implements FeatureDownloader {
     @Override
     public void setup(DownloadRequest request) {
         this.request = request;
+    }
+
+    @Override
+    public void setResponse(DownloadResponse response) {
+        // TODO Auto-generated method stub
     }
 
     @Override
@@ -110,9 +116,8 @@ public class AGRestDownloader implements FeatureDownloader {
 
     @Override
     public void process() {
-        entityBuilder.setMetaData(metaData);
         for (SimpleFeature feature : downloadedFeatures) {
-             entityBuilder.buildGtEntity(feature);
+             entityBuilder.build(feature, metaData, null);
         }
 //        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
         for (Task task : tasks) {
@@ -120,10 +125,10 @@ public class AGRestDownloader implements FeatureDownloader {
         }
     }
 
-//  @Override
-//  public Status getStatus() {
-//      return status;
-//  }
+  @Override
+  public Status getStatus() {
+      return status;
+  }
 
 
     private RestQuery getQuery() throws CRSException {
