@@ -23,7 +23,6 @@ public class AGRestFeatureSource implements OdsFeatureSource {
         this.host = host;
         this.feature = feature;
         String[] parts = feature.split("/");
-        // this.featureName = parts[0];
         this.featureId = Long.valueOf(parts[1]);
     }
 
@@ -93,16 +92,4 @@ public class AGRestFeatureSource implements OdsFeatureSource {
         ReferenceIdentifier rid = getCrs().getIdentifiers().iterator().next();
         return Long.parseLong(rid.getCode());
     }
-
-//    @Override
-//    public OdsDataSource newDataSource(Filter filter) {
-//        return new AGRestDataSource(this);
-//    }
-
-    // @Override
-    // public SimpleFeatureSource getFeatureSource() {
-    // // TODO Auto-generated method stub
-    // return null;
-    // }
-    //
 }

@@ -1,7 +1,5 @@
 package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
@@ -19,14 +17,12 @@ import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
 import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
-import org.openstreetmap.josm.plugins.ods.tasks.Task;
 import org.openstreetmap.josm.tools.I18n;
 
 public class AGRestDownloader implements FeatureDownloader {
     private final AGRestDataSource dataSource;
     private final CRSUtil crsUtil;
     private final GeotoolsEntityBuilder<?> entityBuilder;
-    private final List<Task> tasks;
 
     private AGRestFeatureSource featureSource;
     private MetaData metaData;
@@ -35,11 +31,10 @@ public class AGRestDownloader implements FeatureDownloader {
     private DownloadRequest request;
 
     public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil,
-            GeotoolsEntityBuilder<?> entityBuilder, List<Task> tasks) {
+            GeotoolsEntityBuilder<?> entityBuilder) {
         this.crsUtil = crsUtil;
         this.dataSource = dataSource;
         this.entityBuilder = entityBuilder;
-        this.tasks = (tasks != null ? tasks : new ArrayList<Task>());
     }
 
     @Override
@@ -118,10 +113,6 @@ public class AGRestDownloader implements FeatureDownloader {
     public void process() {
         for (SimpleFeature feature : downloadedFeatures) {
              entityBuilder.build(feature, metaData, null);
-        }
-//        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
-        for (Task task : tasks) {
-//            task.run(ctx);
         }
     }
 
