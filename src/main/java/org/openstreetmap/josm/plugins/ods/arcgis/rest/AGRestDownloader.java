@@ -9,8 +9,11 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.josm.plugins.ods.Host;
+import org.openstreetmap.josm.plugins.ods.Normalisation;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
+import org.openstreetmap.josm.plugins.ods.entities.Entity;
+import org.openstreetmap.josm.plugins.ods.entities.EntityStore;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.GeotoolsEntityBuilder;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
@@ -19,22 +22,32 @@ import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 import org.openstreetmap.josm.tools.I18n;
 
-public class AGRestDownloader implements FeatureDownloader {
+public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final AGRestDataSource dataSource;
     private final CRSUtil crsUtil;
-    private final GeotoolsEntityBuilder<?> entityBuilder;
+    private final GeotoolsEntityBuilder<T> entityBuilder;
 
     private AGRestFeatureSource featureSource;
-    private MetaData metaData;
     private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
+    private EntityStore<T> entityStore;
     private DownloadRequest request;
+    private DownloadResponse response;
+    
+    @SuppressWarnings("unused")
+    private Normalisation normalisation;
 
     public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil,
-            GeotoolsEntityBuilder<?> entityBuilder) {
+            GeotoolsEntityBuilder<T> entityBuilder, EntityStore<T> entityStore) {
         this.crsUtil = crsUtil;
         this.dataSource = dataSource;
         this.entityBuilder = entityBuilder;
+        this.entityStore = entityStore;
+    }
+
+    @Override
+    public void setNormalisation(Normalisation normalisation) {
+        this.normalisation = normalisation;
     }
 
     @Override
@@ -44,14 +57,13 @@ public class AGRestDownloader implements FeatureDownloader {
 
     @Override
     public void setResponse(DownloadResponse response) {
-        // TODO Auto-generated method stub
+        this.response = response;
     }
 
     @Override
     public void prepare() {
         try {
             dataSource.initialize();
-            metaData = dataSource.getMetaData();
             featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
         } catch (Exception e) {
@@ -111,9 +123,14 @@ public class AGRestDownloader implements FeatureDownloader {
 
     @Override
     public void process() {
+        MetaData metaData = dataSource.getMetaData();
         for (SimpleFeature feature : downloadedFeatures) {
-             entityBuilder.build(feature, metaData, null);
+            T entity = entityBuilder.build(feature, metaData, response);
+            if (!entityStore.contains(entity.getPrimaryId())) {
+                entityStore.add(entity);
+            }
         }
+        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
     }
 
   @Override
