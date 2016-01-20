@@ -5,13 +5,15 @@ import java.io.IOException;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.plugins.ods.InitializationException;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureTypeParser;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 
+import exceptions.OdsException;
+
 public class AGRestFeatureSource implements OdsFeatureSource {
     private boolean initialized = false;
+    private boolean available = false;
     private final AGRestHost host;
     private final String feature;
     private final Long featureId;
@@ -47,9 +49,9 @@ public class AGRestFeatureSource implements OdsFeatureSource {
     }
 
     @Override
-    public void initialize() throws InitializationException {
-        if (initialized)
-            return;
+    public void initialize() throws OdsException {
+        if (initialized) return;
+        initialized = true;
         metaData = host.getMetaData();
         HttpRequest request = new HttpRequest();
         try {
@@ -58,16 +60,24 @@ public class AGRestFeatureSource implements OdsFeatureSource {
             HttpResponse response = request.send();
             FeatureTypeParser parser = new FeatureTypeParser();
             featureType = parser.parse(response.getInputStream(),
-                    host.getName());
-            initialized = true;
-        } catch (IOException e) {
-            throw new InitializationException(e);
+                host.getName());
+        } catch (@SuppressWarnings("unused") IOException e) {
+            String msg = String.format("Feature '%s' is not available from host '%s' (%s)",
+                featureId, host.getName(), host.getUrl().toString());
+            throw new OdsException(msg);
         }
+        available = true;
+        return;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return available;
     }
 
     @Override
     public MetaData getMetaData() {
-        assert initialized;
+        assert available;
         return metaData;
     }
 

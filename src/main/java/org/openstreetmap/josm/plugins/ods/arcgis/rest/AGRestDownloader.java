@@ -8,8 +8,8 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.plugins.ods.Host;
 import org.openstreetmap.josm.plugins.ods.Normalisation;
+import org.openstreetmap.josm.plugins.ods.OdsDataSource;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
@@ -18,11 +18,12 @@ import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.GeotoolsEntityBuilder;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
+import org.openstreetmap.josm.plugins.ods.io.Host;
 import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.tools.I18n;
 
 public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
-    private final AGRestDataSource dataSource;
+    private final OdsDataSource dataSource;
     private final CRSUtil crsUtil;
     private final GeotoolsEntityBuilder<T> entityBuilder;
 
@@ -36,7 +37,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     @SuppressWarnings("unused")
     private Normalisation normalisation;
 
-    public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil,
+    public AGRestDownloader(OdsDataSource dataSource, CRSUtil crsUtil,
             GeotoolsEntityBuilder<T> entityBuilder, EntityStore<T> entityStore) {
         this.crsUtil = crsUtil;
         this.dataSource = dataSource;
@@ -62,7 +63,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     @Override
     public void prepare() {
         try {
-            dataSource.initialize();
+//            dataSource.initialize();
             featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
         } catch (Exception e) {
