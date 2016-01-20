@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>josm-ods-arcgis</groupId>
   <artifactId>josm-ods-arcgis</artifactId>
-  <version>0.6.7-snapshot</version>
+  <version>0.7.0-snapshot</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
@@ -20,7 +20,7 @@
   	<dependency>
   		<groupId>josm-plugins</groupId>
   		<artifactId>opendataservices</artifactId>
-  		<version>0.6.7-snapshot</version>
+  		<version>0.7.0-snapshot</version>
   	</dependency>
   	<dependency>
   		<groupId>com.fasterxml.jackson.core</groupId>
