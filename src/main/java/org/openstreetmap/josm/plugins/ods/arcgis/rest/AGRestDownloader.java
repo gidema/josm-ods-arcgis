@@ -10,39 +10,52 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.josm.plugins.ods.Normalisation;
 import org.openstreetmap.josm.plugins.ods.OdsDataSource;
+import org.openstreetmap.josm.plugins.ods.OdsModule;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
-import org.openstreetmap.josm.plugins.ods.entities.EntityStore;
+import org.openstreetmap.josm.plugins.ods.entities.EntityRepository;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
-import org.openstreetmap.josm.plugins.ods.entities.opendata.GeotoolsEntityBuilder;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
 import org.openstreetmap.josm.plugins.ods.io.Host;
 import org.openstreetmap.josm.plugins.ods.io.Status;
+import org.openstreetmap.josm.plugins.ods.properties.EntityMapper;
 import org.openstreetmap.josm.tools.I18n;
+
+import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 
 public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final OdsDataSource dataSource;
     private final CRSUtil crsUtil;
-    private final GeotoolsEntityBuilder<T> entityBuilder;
 
     private AGRestFeatureSource featureSource;
+    private final EntityMapper<SimpleFeature, T> mapper;
     private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
-    private EntityStore<T> entityStore;
+    private final EntityRepository repository;
+//    private EntityStore<T> entityStore;
     private DownloadRequest request;
     private DownloadResponse response;
     
     @SuppressWarnings("unused")
     private Normalisation normalisation;
 
-    public AGRestDownloader(OdsDataSource dataSource, CRSUtil crsUtil,
-            GeotoolsEntityBuilder<T> entityBuilder, EntityStore<T> entityStore) {
-        this.crsUtil = crsUtil;
+//    public AGRestDownloader(OdsDataSource dataSource, CRSUtil crsUtil,
+//            EntityMapper<SimpleFeature, T> mapper, EntityStore<T> entityStore) {
+//        this.crsUtil = crsUtil;
+//        this.dataSource = dataSource;
+//        this.mapper = mapper;
+//        this.entityStore = entityStore;
+//    }
+
+    @SuppressWarnings("unchecked")
+    public AGRestDownloader(OdsModule module, OdsDataSource dataSource, Class<T> clazz) {
+        this.crsUtil = module.getCrsUtil();
         this.dataSource = dataSource;
-        this.entityBuilder = entityBuilder;
-        this.entityStore = entityStore;
+        this.repository = module.getOpenDataLayerManager().getRepository();
+        this.mapper = (EntityMapper<SimpleFeature, T>) dataSource.getEntityMapper();
+//        this.entityStore = module.getOpenDataLayerManager().getEntityStore(clazz);
     }
 
     @Override
@@ -123,13 +136,20 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
 
     @Override
     public void process() {
+//        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
+        PreparedGeometryFactory preparedGeometryFactory = new PreparedGeometryFactory();
+//        PreparedGeometry boundary = preparedGeometryFactory.create(entityStore.getBoundary());
         for (SimpleFeature feature : downloadedFeatures) {
-            T entity = entityBuilder.build(feature, response);
-            if (!entityStore.contains(entity.getPrimaryId())) {
-                entityStore.add(entity);
-            }
+            T entity = mapper.map(feature);
+//            if (!entityStore.contains(entity.getPrimaryId())) {
+//                boolean incomplete = !boundary.covers(entity.getGeometry());
+//                entity.setIncomplete(incomplete);
+//                entity.setIncomplete(false);
+//                entityStore.add(entity);
+//            }
+            entity.setIncomplete(false);
+            repository.add(entity);
         }
-        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
     }
 
   @Override
@@ -149,7 +169,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     }
 
     private String formatBounds(Long srid) throws CRSException {
-        CoordinateReferenceSystem crs = crsUtil.getCrs(srid);
+        CoordinateReferenceSystem crs = CRSUtil.getCrs(srid);
         ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs,
                 request.getBoundary().getBounds());
         return String.format(Locale.ENGLISH, "%f,%f,%f,%f", envelope.getMinX(),

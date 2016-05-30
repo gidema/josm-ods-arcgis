@@ -7,9 +7,8 @@ import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureTypeParser;
+import org.openstreetmap.josm.plugins.ods.exceptions.OdsException;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
-
-import exceptions.OdsException;
 
 public class AGRestFeatureSource implements OdsFeatureSource {
     private boolean initialized = false;
@@ -52,6 +51,7 @@ public class AGRestFeatureSource implements OdsFeatureSource {
     public void initialize() throws OdsException {
         if (initialized) return;
         initialized = true;
+        host.initialize();
         metaData = host.getMetaData();
         HttpRequest request = new HttpRequest();
         try {
