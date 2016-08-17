@@ -14,7 +14,7 @@ import org.openstreetmap.josm.plugins.ods.OdsModule;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
-import org.openstreetmap.josm.plugins.ods.entities.EntityRepository;
+import org.openstreetmap.josm.plugins.ods.entities.Repository;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
@@ -33,7 +33,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final EntityMapper<SimpleFeature, T> mapper;
     private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
-    private final EntityRepository repository;
+    private final Repository repository;
 //    private EntityStore<T> entityStore;
     private DownloadRequest request;
     private DownloadResponse response;
@@ -76,7 +76,6 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     @Override
     public void prepare() {
         try {
-//            dataSource.initialize();
             featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
         } catch (Exception e) {
