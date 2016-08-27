@@ -128,7 +128,7 @@ public class RestQuery {
     return o.toString();
   }
   
-  private String encode(String s) {
+  private static String encode(String s) {
     if (s == null) return "";
     try {
       return URLEncoder.encode(s, "UTF-8");

@@ -34,7 +34,10 @@ public class ArcgisJacksonTest {
   
   private SimpleFeatureType parseFeatureType() throws JsonProcessingException, IOException {
     FeatureTypeParser parser = new FeatureTypeParser();
-    InputStream inputStream = getClass().getResourceAsStream("/featuretype.json");
-    return parser.parse(inputStream, "prefix");
+    try (
+        InputStream inputStream = getClass().getResourceAsStream("/featuretype.json");
+    ) {
+        return parser.parse(inputStream, "prefix");
+    }
   }
 }

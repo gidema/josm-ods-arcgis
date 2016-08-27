@@ -18,8 +18,11 @@ public class HostDescriptionParser {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(inputStream);
 
+        @SuppressWarnings("unused")
         String serviceDescription = node.get("serviceDescription").textValue();
+        @SuppressWarnings("unused")
         String description = node.get("description").textValue();
+        @SuppressWarnings("unused")
         String copyrightText = node.get("copyrightText").textValue();
         Iterator<JsonNode> it = node.get("layers").elements();
         List<String> featureTypes = new LinkedList<>();

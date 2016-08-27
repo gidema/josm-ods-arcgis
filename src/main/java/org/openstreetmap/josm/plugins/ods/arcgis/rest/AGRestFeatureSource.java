@@ -61,7 +61,7 @@ public class AGRestFeatureSource implements OdsFeatureSource {
             FeatureTypeParser parser = new FeatureTypeParser();
             featureType = parser.parse(response.getInputStream(),
                 host.getName());
-        } catch (@SuppressWarnings("unused") IOException e) {
+        } catch (IOException e) {
             String msg = String.format("Feature '%s' is not available from host '%s' (%s)",
                 featureId, host.getName(), host.getUrl().toString());
             throw new OdsException(msg);

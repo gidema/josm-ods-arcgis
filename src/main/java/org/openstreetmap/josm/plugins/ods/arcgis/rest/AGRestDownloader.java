@@ -23,8 +23,6 @@ import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.plugins.ods.properties.EntityMapper;
 import org.openstreetmap.josm.tools.I18n;
 
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
-
 public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final OdsDataSource dataSource;
     private final CRSUtil crsUtil;
@@ -34,28 +32,20 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
     private final Repository repository;
-//    private EntityStore<T> entityStore;
     private DownloadRequest request;
-    private DownloadResponse response;
-    
+
     @SuppressWarnings("unused")
     private Normalisation normalisation;
-
-//    public AGRestDownloader(OdsDataSource dataSource, CRSUtil crsUtil,
-//            EntityMapper<SimpleFeature, T> mapper, EntityStore<T> entityStore) {
-//        this.crsUtil = crsUtil;
-//        this.dataSource = dataSource;
-//        this.mapper = mapper;
-//        this.entityStore = entityStore;
-//    }
+    @SuppressWarnings("unused")
+    private DownloadResponse response;
 
     @SuppressWarnings("unchecked")
-    public AGRestDownloader(OdsModule module, OdsDataSource dataSource, Class<T> clazz) {
+    public AGRestDownloader(OdsModule module, OdsDataSource dataSource) {
         this.crsUtil = module.getCrsUtil();
         this.dataSource = dataSource;
         this.repository = module.getOpenDataLayerManager().getRepository();
-        this.mapper = (EntityMapper<SimpleFeature, T>) dataSource.getEntityMapper();
-//        this.entityStore = module.getOpenDataLayerManager().getEntityStore(clazz);
+        this.mapper = (EntityMapper<SimpleFeature, T>) dataSource
+                .getEntityMapper();
     }
 
     @Override
@@ -95,13 +85,11 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
         }
         AGRestReader reader = new AGRestReader(query,
                 featureSource.getFeatureType());
-        try (
-            SimpleFeatureIterator it = reader.getFeatures().features();
-        )  {
+        try (SimpleFeatureIterator it = reader.getFeatures().features();) {
             while (it.hasNext()) {
                 downloadedFeatures.add(it.next());
             }
-        } catch (ArcgisServerRestException|NoSuchElementException e) {
+        } catch (ArcgisServerRestException | NoSuchElementException e) {
             status.setFailed(true);
             status.setException(e);
             throw new RuntimeException(e.getMessage());
@@ -111,18 +99,19 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
         }
         if (downloadedFeatures.isEmpty() && dataSource.isRequired()) {
             String featureType = dataSource.getFeatureType();
-            status.setMessage(I18n.tr(
-                    "The selected download area contains no {0} objects.",
-                    featureType));
+            status.setMessage(
+                    I18n.tr("The selected download area contains no {0} objects.",
+                            featureType));
             status.setCancelled(true);
         } else {
             Host host = dataSource.getOdsFeatureSource().getHost();
             host.getMaxFeatures();
             Integer maxFeatures = host.getMaxFeatures();
-            if (maxFeatures != null && downloadedFeatures.size() >= maxFeatures) {
+            if (maxFeatures != null
+                    && downloadedFeatures.size() >= maxFeatures) {
                 String featureType = dataSource.getFeatureType();
-                status.setMessage(I18n
-                        .tr("To many {0} objects. Please choose a smaller download area.",
+                status.setMessage(
+                        I18n.tr("To many {0} objects. Please choose a smaller download area.",
                                 featureType));
                 status.setCancelled(true);
             }
@@ -135,27 +124,17 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
 
     @Override
     public void process() {
-//        entityStore.extendBoundary(request.getBoundary().getMultiPolygon());
-        PreparedGeometryFactory preparedGeometryFactory = new PreparedGeometryFactory();
-//        PreparedGeometry boundary = preparedGeometryFactory.create(entityStore.getBoundary());
         for (SimpleFeature feature : downloadedFeatures) {
             T entity = mapper.map(feature);
-//            if (!entityStore.contains(entity.getPrimaryId())) {
-//                boolean incomplete = !boundary.covers(entity.getGeometry());
-//                entity.setIncomplete(incomplete);
-//                entity.setIncomplete(false);
-//                entityStore.add(entity);
-//            }
             entity.setIncomplete(false);
             repository.add(entity);
         }
     }
 
-  @Override
-  public Status getStatus() {
-      return status;
-  }
-
+    @Override
+    public Status getStatus() {
+        return status;
+    }
 
     private RestQuery getQuery() throws CRSException {
         RestQuery query = new RestQuery();
@@ -174,7 +153,6 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
         return String.format(Locale.ENGLISH, "%f,%f,%f,%f", envelope.getMinX(),
                 envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY());
     }
-
 
     @Override
     public void cancel() {

@@ -72,7 +72,7 @@ public class AGRestHost extends AbstractHost {
 //        
 //        OdsDataSource dataSource = getModule().getConfiguration().getDataSource(sourceName);
         dataSource.initialize();
-        return new AGRestDownloader<>(module, dataSource, clazz);
+        return new AGRestDownloader<>(module, dataSource);
     }
 
 }
