@@ -9,6 +9,7 @@ import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureTypeParser;
 import org.openstreetmap.josm.plugins.ods.exceptions.OdsException;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
+import org.openstreetmap.josm.tools.I18n;
 
 public class AGRestFeatureSource implements OdsFeatureSource {
     private boolean initialized = false;
@@ -62,7 +63,7 @@ public class AGRestFeatureSource implements OdsFeatureSource {
             featureType = parser.parse(response.getInputStream(),
                 host.getName());
         } catch (IOException e) {
-            String msg = String.format("Feature '%s' is not available from host '%s' (%s)",
+            String msg = I18n.tr("Feature ''{0}'' is not available from host ''{1}'' ({2})",
                 featureId, host.getName(), host.getUrl().toString());
             throw new OdsException(msg);
         }

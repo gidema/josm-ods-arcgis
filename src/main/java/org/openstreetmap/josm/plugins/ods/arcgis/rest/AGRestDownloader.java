@@ -2,12 +2,14 @@ package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.plugins.ods.Normalisation;
 import org.openstreetmap.josm.plugins.ods.OdsDataSource;
 import org.openstreetmap.josm.plugins.ods.OdsModule;
@@ -19,17 +21,21 @@ import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
 import org.openstreetmap.josm.plugins.ods.io.Host;
-import org.openstreetmap.josm.plugins.ods.io.Status;
 import org.openstreetmap.josm.plugins.ods.properties.EntityMapper;
 import org.openstreetmap.josm.tools.I18n;
 
+/**
+ * Downloader for a single Arcgis rest feature. 
+ * @author Gertjan Idema <mail@gertjanidema.nl>
+ *
+ * @param <T>
+ */
 public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final OdsDataSource dataSource;
     private final CRSUtil crsUtil;
 
     private AGRestFeatureSource featureSource;
     private final EntityMapper<SimpleFeature, T> mapper;
-    private final Status status = new Status();
     private DefaultFeatureCollection downloadedFeatures;
     private final Repository repository;
     private DownloadRequest request;
@@ -64,45 +70,42 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     }
 
     @Override
-    public void prepare() {
+    public void prepare() throws ExecutionException {
         try {
             featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
         } catch (Exception e) {
-            status.setFailed(true);
-            status.setException(e);
+            throw new ExecutionException(e);
         }
     }
 
     @Override
-    public void download() {
+    public void download() throws ExecutionException {
         downloadedFeatures = new DefaultFeatureCollection();
         RestQuery query;
         try {
             query = getQuery();
         } catch (CRSException e) {
-            throw new RuntimeException(e);
+            throw new ExecutionException(e);
         }
         AGRestReader reader = new AGRestReader(query,
                 featureSource.getFeatureType());
         try (SimpleFeatureIterator it = reader.getFeatures().features();) {
-            while (it.hasNext()) {
+            while (it.hasNext() && !Thread.currentThread().isInterrupted()) {
                 downloadedFeatures.add(it.next());
             }
+            if (Thread.currentThread().isInterrupted()) {
+                downloadedFeatures.clear();
+                return;
+            }
         } catch (ArcgisServerRestException | NoSuchElementException e) {
-            status.setFailed(true);
-            status.setException(e);
-            throw new RuntimeException(e.getMessage());
-        }
-        if (status.isCancelled()) {
-            return;
+            throw new ExecutionException(e.getMessage(), e);
         }
         if (downloadedFeatures.isEmpty() && dataSource.isRequired()) {
             String featureType = dataSource.getFeatureType();
-            status.setMessage(
-                    I18n.tr("The selected download area contains no {0} objects.",
+            Main.info(
+                I18n.tr("The selected download area contains no {0} objects.",
                             featureType));
-            status.setCancelled(true);
         } else {
             Host host = dataSource.getOdsFeatureSource().getHost();
             host.getMaxFeatures();
@@ -110,30 +113,25 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
             if (maxFeatures != null
                     && downloadedFeatures.size() >= maxFeatures) {
                 String featureType = dataSource.getFeatureType();
-                status.setMessage(
+                throw new ExecutionException(
                         I18n.tr("To many {0} objects. Please choose a smaller download area.",
-                                featureType));
-                status.setCancelled(true);
+                                featureType), null);
             }
-        }
-        if (!status.isSucces()) {
-            Thread.currentThread().interrupt();
-            return;
         }
     }
 
     @Override
     public void process() {
         for (SimpleFeature feature : downloadedFeatures) {
+            if (Thread.currentThread().isInterrupted()) {
+                downloadedFeatures.clear();
+                repository.clear();
+                return;
+            }
             T entity = mapper.map(feature);
             entity.setIncomplete(false);
             repository.add(entity);
         }
-    }
-
-    @Override
-    public Status getStatus() {
-        return status;
     }
 
     private RestQuery getQuery() throws CRSException {
@@ -156,6 +154,6 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
 
     @Override
     public void cancel() {
-        // TODO Auto-generated method stub
+        // No action required
     }
 }
