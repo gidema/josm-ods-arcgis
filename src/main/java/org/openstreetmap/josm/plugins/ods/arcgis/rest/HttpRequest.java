@@ -17,7 +17,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-public class HttpRequest {
+public class HttpRequest implements AutoCloseable {
     private String method = "GET";
     private String url;
     private final Map<String, String> parameters = new HashMap<>();
@@ -99,6 +99,7 @@ public class HttpRequest {
         }
     }
 
+    @Override
     public void close() {
         if (connection != null) {
             connection.disconnect();

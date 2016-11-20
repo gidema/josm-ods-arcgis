@@ -17,6 +17,7 @@ public class HostDescriptionParser {
             throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(inputStream);
+        JsonUtil.checkError(node);
 
         @SuppressWarnings("unused")
         String serviceDescription = node.get("serviceDescription").textValue();

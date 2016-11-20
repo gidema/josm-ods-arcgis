@@ -34,8 +34,10 @@ public class AGRestHost extends AbstractHost {
     public synchronized void initialize() throws OdsException {
         if (isInitialized()) return;
         super.initialize();
-        HttpRequest request = new HttpRequest();
-        try {
+        setInitialized(false);
+        try (
+            HttpRequest request = new HttpRequest();
+        )  {
             request.open("GET", getUrl().toString());
             request.addParameter("f", "json");
             HttpResponse response = request.send();
@@ -48,8 +50,8 @@ public class AGRestHost extends AbstractHost {
             setInitialized(false);
             throw new OdsException(msg);
         } catch (IOException e) {
-            String msg = I18n.tr("Host ''{0}'' ({1)) could not be initialized",
-                    getName(), getUrl().toString());
+            String msg = I18n.tr("Host ''{0}'' ({1}) could not be initialized because:\n{2}",
+                    getName(), getUrl().toString(), e.getMessage());
             throw new OdsException(msg);
         }
         for (String featureType : featureTypes) {

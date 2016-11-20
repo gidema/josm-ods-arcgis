@@ -51,22 +51,23 @@ public class AGRestFeatureSource implements OdsFeatureSource {
     @Override
     public void initialize() throws OdsException {
         if (initialized) return;
-        initialized = true;
-        host.initialize();
-        metaData = host.getMetaData();
-        HttpRequest request = new HttpRequest();
         try {
+            host.initialize();
+            metaData = host.getMetaData();
+            HttpRequest request = new HttpRequest();
             request.open("GET", host.getUrl() + "/" + featureId);
             request.addParameter("f", "json");
             HttpResponse response = request.send();
             FeatureTypeParser parser = new FeatureTypeParser();
             featureType = parser.parse(response.getInputStream(),
                 host.getName());
-        } catch (IOException e) {
+        } catch (IOException | OdsException e ) {
             String msg = I18n.tr("Feature ''{0}'' is not available from host ''{1}'' ({2})",
                 featureId, host.getName(), host.getUrl().toString());
+            initialized = false;
             throw new OdsException(msg);
         }
+        initialized = true;
         available = true;
         return;
     }
