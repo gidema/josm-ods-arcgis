@@ -2,7 +2,6 @@ package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutionException;
 
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
@@ -18,6 +17,7 @@ import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
 import org.openstreetmap.josm.plugins.ods.entities.Repository;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
+import org.openstreetmap.josm.plugins.ods.exceptions.OdsException;
 import org.openstreetmap.josm.plugins.ods.io.DefaultPrepareResponse;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
@@ -72,24 +72,20 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     }
 
     @Override
-    public PrepareResponse prepare() throws ExecutionException {
-        try {
-            featureSource = (AGRestFeatureSource) dataSource
+    public PrepareResponse prepare() throws OdsException {
+        featureSource = (AGRestFeatureSource) dataSource
                     .getOdsFeatureSource();
-        } catch (Exception e) {
-            throw new ExecutionException(e);
-        }
         return new DefaultPrepareResponse();
     }
 
     @Override
-    public void download() throws ExecutionException {
+    public void download() throws OdsException {
         downloadedFeatures = new DefaultFeatureCollection();
         RestQuery query;
         try {
             query = getQuery();
         } catch (CRSException e) {
-            throw new ExecutionException(e);
+            throw new OdsException(e);
         }
         AGRestReader reader = new AGRestReader(query,
                 featureSource.getFeatureType());
@@ -102,7 +98,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
                 return;
             }
         } catch (ArcgisServerRestException | NoSuchElementException e) {
-            throw new ExecutionException(e.getMessage(), e);
+            throw new OdsException(e.getMessage(), e);
         }
         if (downloadedFeatures.isEmpty() && dataSource.isRequired()) {
             String featureType = dataSource.getFeatureType();
@@ -116,9 +112,9 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
             if (maxFeatures != null
                     && downloadedFeatures.size() >= maxFeatures) {
                 String featureType = dataSource.getFeatureType();
-                throw new ExecutionException(
+                throw new OdsException(
                         I18n.tr("To many {0} objects. Please choose a smaller download area.",
-                                featureType), null);
+                                featureType));
             }
         }
     }
