@@ -4,7 +4,6 @@
   <artifactId>josm-ods-arcgis</artifactId>
   <version>0.7.0-snapshot</version>
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
