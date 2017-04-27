@@ -15,7 +15,6 @@ import org.openstreetmap.josm.plugins.ods.OdsModule;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
-import org.openstreetmap.josm.plugins.ods.entities.Repository;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.exceptions.OdsException;
 import org.openstreetmap.josm.plugins.ods.io.DefaultPrepareResponse;
@@ -24,6 +23,7 @@ import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
 import org.openstreetmap.josm.plugins.ods.io.Host;
 import org.openstreetmap.josm.plugins.ods.io.PrepareResponse;
 import org.openstreetmap.josm.plugins.ods.properties.EntityMapper;
+import org.openstreetmap.josm.plugins.ods.storage.Repository;
 import org.openstreetmap.josm.tools.I18n;
 
 /**
