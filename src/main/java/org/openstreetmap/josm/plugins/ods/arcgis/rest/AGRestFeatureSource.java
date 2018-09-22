@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.openstreetmap.josm.plugins.ods.InitializationException;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureTypeParser;
-import org.openstreetmap.josm.plugins.ods.exceptions.OdsException;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
 import org.openstreetmap.josm.tools.I18n;
 
@@ -49,32 +49,28 @@ public class AGRestFeatureSource implements OdsFeatureSource {
     }
 
     @Override
-    public void initialize() throws OdsException {
+    public void initialize() {
         if (initialized) return;
-        try {
+        try (
+                HttpRequest request = new HttpRequest();
+                ) {
             host.initialize();
             metaData = host.getMetaData();
-            HttpRequest request = new HttpRequest();
             request.open("GET", host.getUrl() + "/" + featureId);
             request.addParameter("f", "json");
             HttpResponse response = request.send();
             FeatureTypeParser parser = new FeatureTypeParser();
             featureType = parser.parse(response.getInputStream(),
-                host.getName());
-        } catch (IOException | OdsException e ) {
+                    host.getName());
+        } catch (IOException | InitializationException e ) {
             String msg = I18n.tr("Feature ''{0}'' is not available from host ''{1}'' ({2})",
-                featureId, host.getName(), host.getUrl().toString());
+                    featureId, host.getName(), host.getUrl().toString());
             initialized = false;
-            throw new OdsException(msg);
+            throw new RuntimeException(msg);
         }
         initialized = true;
         available = true;
         return;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
     }
 
     @Override

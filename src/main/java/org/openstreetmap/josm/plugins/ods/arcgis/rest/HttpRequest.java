@@ -83,11 +83,13 @@ public class HttpRequest implements AutoCloseable {
                         "application/x-www-form-urlencoded");
                 connection.setRequestProperty("Content-Length",
                         "" + Integer.toString(postData.getBytes().length));
-                DataOutputStream wr = new DataOutputStream(
+                try (DataOutputStream wr = new DataOutputStream(
                         connection.getOutputStream());
-                wr.writeBytes(postData);
-                wr.flush();
-                wr.close();
+                        ) {
+                    wr.writeBytes(postData);
+                    wr.flush();
+                    wr.close();
+                }
             }
             return new HttpResponse(this);
         } catch (Exception e) {
@@ -149,13 +151,13 @@ public class HttpRequest implements AutoCloseable {
     private String getErrorMessage(String encoding) {
         StringBuilder errorBody = new StringBuilder();
         try (
-            InputStream i = FixEncoding(connection.getErrorStream(), encoding);
-        ) {
+                InputStream i = FixEncoding(connection.getErrorStream(), encoding);
+                ) {
             if (i != null) {
                 try (
-                    BufferedReader in = new BufferedReader(
-                        new InputStreamReader(i));
-                ) {
+                        BufferedReader in = new BufferedReader(
+                                new InputStreamReader(i));
+                        ) {
                     String s;
                     while ((s = in.readLine()) != null) {
                         errorBody.append(s);
@@ -171,11 +173,11 @@ public class HttpRequest implements AutoCloseable {
 
     // protected abstract void processResult(InputStream is) throws IOException;
 
-//    private static String encode(Object o) {
-//        if (o == null)
-//            return "";
-//        return encode(o.toString());
-//    }
+    //    private static String encode(Object o) {
+    //        if (o == null)
+    //            return "";
+    //        return encode(o.toString());
+    //    }
 
     private static String encode(String s) {
         if (s == null)

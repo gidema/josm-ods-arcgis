@@ -13,31 +13,39 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class ArcgisJacksonTest {
-  @Test
-  public void testFeatureCollectionParser() throws JsonParseException, IOException {
-    parseFeatureCollection();
-  }
-  
-  private FeatureCollection<?, ?> parseFeatureCollection() throws JsonProcessingException, IOException {
-    InputStream inputStream = getClass().getResourceAsStream("/testdata.json");
-    SimpleFeatureType featureType = parseFeatureType();
-    FeatureCollectionParser parser = new FeatureCollectionParser(featureType);
-    FeatureCollection<?, ?> features = parser.parse(inputStream);
-    inputStream.close();
-    return features;
-  }
-
-  @Test
-  public void testFeatureTypeParser() throws JsonProcessingException, IOException {
-    parseFeatureType();
-  }
-  
-  private SimpleFeatureType parseFeatureType() throws JsonProcessingException, IOException {
-    FeatureTypeParser parser = new FeatureTypeParser();
-    try (
-        InputStream inputStream = getClass().getResourceAsStream("/featuretype.json");
-    ) {
-        return parser.parse(inputStream, "prefix");
+    @Test
+    public void testFeatureCollectionParser()
+            throws JsonParseException, IOException {
+        parseFeatureCollection();
     }
-  }
+
+    private FeatureCollection<?, ?> parseFeatureCollection()
+            throws JsonProcessingException, IOException {
+        try (
+                InputStream inputStream = getClass()
+                .getResourceAsStream("/testdata.json");)
+        {
+            SimpleFeatureType featureType = parseFeatureType();
+            FeatureCollectionParser parser = new FeatureCollectionParser(
+                    featureType);
+            FeatureCollection<?, ?> features = parser.parse(inputStream);
+            inputStream.close();
+            return features;
+        }
+    }
+
+    @Test
+    public void testFeatureTypeParser()
+            throws JsonProcessingException, IOException {
+        parseFeatureType();
+    }
+
+    private SimpleFeatureType parseFeatureType()
+            throws JsonProcessingException, IOException {
+        FeatureTypeParser parser = new FeatureTypeParser();
+        try (InputStream inputStream = getClass()
+                .getResourceAsStream("/featuretype.json");) {
+            return parser.parse(inputStream, "prefix");
+        }
+    }
 }

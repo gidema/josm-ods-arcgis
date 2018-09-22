@@ -6,28 +6,23 @@ import java.util.NoSuchElementException;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.plugins.ods.Host;
 import org.openstreetmap.josm.plugins.ods.Normalisation;
 import org.openstreetmap.josm.plugins.ods.OdsDataSource;
-import org.openstreetmap.josm.plugins.ods.OdsModule;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.entities.Entity;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
-import org.openstreetmap.josm.plugins.ods.exceptions.OdsException;
-import org.openstreetmap.josm.plugins.ods.io.DefaultPrepareResponse;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
-import org.openstreetmap.josm.plugins.ods.io.Host;
-import org.openstreetmap.josm.plugins.ods.io.PrepareResponse;
-import org.openstreetmap.josm.plugins.ods.properties.EntityMapper;
-import org.openstreetmap.josm.plugins.ods.storage.Repository;
+import org.openstreetmap.josm.plugins.ods.io.Status;
+import org.openstreetmap.josm.plugins.ods.parsing.FeatureParser;
 import org.openstreetmap.josm.tools.I18n;
+import org.openstreetmap.josm.tools.Logging;
 
 /**
- * Downloader for a single Arcgis rest feature. 
+ * Downloader for a single Arcgis rest feature.
  * @author Gertjan Idema <mail@gertjanidema.nl>
  *
  * @param <T>
@@ -37,28 +32,22 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     private final CRSUtil crsUtil;
 
     private AGRestFeatureSource featureSource;
-    private final EntityMapper<SimpleFeature, T> mapper;
     private DefaultFeatureCollection downloadedFeatures;
-    private final Repository repository;
+    private final FeatureParser parser;
     private DownloadRequest request;
+    private final Status status = new Status();
 
-    @SuppressWarnings("unused")
-    private Normalisation normalisation;
-    @SuppressWarnings("unused")
     private DownloadResponse response;
 
-    @SuppressWarnings("unchecked")
-    public AGRestDownloader(OdsModule module, OdsDataSource dataSource) {
-        this.crsUtil = module.getCrsUtil();
+    public AGRestDownloader(OdsDataSource dataSource, CRSUtil crsUtil, FeatureParser parser) {
+        this.crsUtil = crsUtil;
         this.dataSource = dataSource;
-        this.repository = module.getOpenDataLayerManager().getRepository();
-        this.mapper = (EntityMapper<SimpleFeature, T>) dataSource
-                .getEntityMapper();
+        this.parser = parser;
     }
 
     @Override
     public void setNormalisation(Normalisation normalisation) {
-        this.normalisation = normalisation;
+        // Do nothing. This method will be deprecated anyway
     }
 
     @Override
@@ -72,20 +61,20 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     }
 
     @Override
-    public PrepareResponse prepare() throws OdsException {
+    public void prepare() {
         featureSource = (AGRestFeatureSource) dataSource
-                    .getOdsFeatureSource();
-        return new DefaultPrepareResponse();
+                .getOdsFeatureSource();
+        return;
     }
 
     @Override
-    public void download() throws OdsException {
+    public void download() {
         downloadedFeatures = new DefaultFeatureCollection();
         RestQuery query;
         try {
             query = getQuery();
         } catch (CRSException e) {
-            throw new OdsException(e);
+            throw new RuntimeException(e);
         }
         AGRestReader reader = new AGRestReader(query,
                 featureSource.getFeatureType());
@@ -98,12 +87,12 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
                 return;
             }
         } catch (ArcgisServerRestException | NoSuchElementException e) {
-            throw new OdsException(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
         if (downloadedFeatures.isEmpty() && dataSource.isRequired()) {
             String featureType = dataSource.getFeatureType();
-            Main.info(
-                I18n.tr("The selected download area contains no {0} objects.",
+            Logging.info(
+                    I18n.tr("The selected download area contains no {0} objects.",
                             featureType));
         } else {
             Host host = dataSource.getOdsFeatureSource().getHost();
@@ -112,7 +101,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
             if (maxFeatures != null
                     && downloadedFeatures.size() >= maxFeatures) {
                 String featureType = dataSource.getFeatureType();
-                throw new OdsException(
+                throw new RuntimeException(
                         I18n.tr("To many {0} objects. Please choose a smaller download area.",
                                 featureType));
             }
@@ -121,16 +110,12 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
 
     @Override
     public void process() {
-        for (SimpleFeature feature : downloadedFeatures) {
-            if (Thread.currentThread().isInterrupted()) {
-                downloadedFeatures.clear();
-                repository.clear();
-                return;
-            }
-            T entity = mapper.map(feature);
-            entity.setIncomplete(false);
-            repository.add(entity);
-        }
+        parser.parse(downloadedFeatures, response);
+    }
+
+    @Override
+    public Status getStatus() {
+        return status;
     }
 
     private RestQuery getQuery() throws CRSException {

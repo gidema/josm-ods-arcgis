@@ -51,18 +51,18 @@ public class FeatureCollectionParser {
         GeometryType geometryType = featureType.getGeometryDescriptor()
                 .getType();
         this.geometryClass = geometryType.getBinding();
-        Long srid = CRSUtil
+        Integer srid = CRSUtil
                 .getSrid(geometryType.getCoordinateReferenceSystem());
         PrecisionModel precisionModel = new PrecisionModel();
-        this.geoFactory = new GeometryFactory(precisionModel, srid.intValue());
+        this.geoFactory = new GeometryFactory(precisionModel, srid);
     }
 
     public SimpleFeatureCollection parse(InputStream is)
             throws JsonParseException, IOException {
         List<SimpleFeature> featureList = new LinkedList<>();
         try (
-            JsonParser jp = factory.createParser(is);
-        ) {
+                JsonParser jp = factory.createParser(is);
+                ) {
             jp.nextToken();
             jp.nextToken();
             if ("error".equals(jp.getCurrentName())) {
