@@ -1,8 +1,9 @@
 package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
+import org.openstreetmap.josm.plugins.ods.arcgis.rest.model.EsriGeometryType;
+
 public class RestQuery {
     private String host;
-    private AGRestFeatureSource featureSource;
     private Long layer;
     private String text = "";
     private String geometry;
@@ -16,10 +17,6 @@ public class RestQuery {
 
     public void setHost(String host) {
         this.host = host;
-    }
-
-    public void setFeatureSource(AGRestFeatureSource featureSource) {
-        this.featureSource = featureSource;
     }
 
     public void setLayer(Long layer) {
@@ -70,10 +67,6 @@ public class RestQuery {
     // return serviceName;
     // }
 
-    public AGRestFeatureSource getFeatureSource() {
-        return featureSource;
-    }
-
     public Long getLayer() {
         return layer;
     }
@@ -112,5 +105,22 @@ public class RestQuery {
 
     public Boolean getReturnGeometry() {
         return returnGeometry;
+    }
+
+    @Override
+    public RestQuery clone() {
+        RestQuery query = new RestQuery();
+        query.setGeometry(getGeometry());
+        query.setGeometryType(getGeometryType());
+        query.setHost(getHost());
+        query.setInSR(getInSR());
+        query.setLayer(getLayer());
+        query.setOutFields(getOutFields());
+        query.setOutSR(getOutSR());
+        query.setReturnGeometry(getReturnGeometry());
+        query.setSpatialRel(getSpatialRel());
+        query.setText(getText());
+        query.setWhere(getWhere());
+        return query;
     }
 }

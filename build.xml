@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="ods-arcgis"  default="dist" basedir="." 
+  xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+  <artifact:pom id="mypom" file="pom.xml" />
+
+	<!-- enter the SVN commit message -->
+  <property name="commit.message" value="Commit message" />
+  <!-- enter the *lowest* JOSM version this plugin is currently compatible with -->
+  <property name="plugin.main.version" value="14026" />
+  <property name="plugin.class" value="org.openstreetmap.josm.plugins.ods.arcgis.ArcgisPlugin"/>
+  <property name="plugin.version" value="${mypom.version}" />
+	<property name="plugin.build.dir" value="build" />
+	<property name="plugin.src.dir" value="src" />
+	<!-- this is the directory where the plugin jar is copied to -->
+  <property name="maven.target.dir" value="${mypom.build.directory}" />
+	<property name="plugin.dist.dir" value="dist" />
+	<property name="ant.build.javac.target" value="1.8" />
+	<property name="ant.build.javac.source" value="1.8" />
+	<property name="plugin.jar" value="${plugin.dist.dir}/${ant.project.name}.jar" />
+	<!--
+    **********************************************************
+    ** init - initializes the build
+    **********************************************************
+    -->
+  <target name="init" depends="clean">
+    <mkdir dir="${plugin.build.dir}" />
+    <artifact:dependencies filesetId="dependency.fileset">
+      <dependency groupId="com.fasterxml.jackson.core" artifactId="jackson-core" version="2.3.0"/>
+      <dependency groupId="com.fasterxml.jackson.core" artifactId="jackson-databind" version="2.3.0"/>
+      <dependency groupId="com.fasterxml.jackson.core" artifactId="jackson-annotations" version="2.3.0"/>
+    </artifact:dependencies>
+
+	</target>
+
+	<!--
+    **********************************************************
+    ** dist - creates the jar
+    **********************************************************
+    -->
+	<target name="dist" depends="init">
+		<echo message="creating ${ant.project.name}.jar ... " />
+    <copy todir="${plugin.build.dir}">
+    	<fileset dir="${maven.target.dir}/classes"/>
+    </copy>
+    <unjar dest="${plugin.build.dir}">
+      <fileset file="${com.fasterxml.jackson.core:jackson-databind:jar}" />
+      <fileset file="${com.fasterxml.jackson.core:jackson-annotations:jar}" />
+      <fileset file="${com.fasterxml.jackson.core:jackson-core:jar}" />
+        <patternset>
+            <exclude name="META-INF/ECLIPSEF.*"/>
+        </patternset>
+    </unjar>
+		<jar destfile="${plugin.jar}" basedir="${plugin.build.dir}">
+      <manifest>
+        <attribute name="Author" value="Gertjan Idema &lt;mail@gertjanidema.nl&gt;"/>
+        <attribute name="Plugin-Class" value="${plugin.class}"/>
+        <attribute name="Plugin-Date" value="${time}"/>
+        <attribute name="Plugin-Description" value="Extension for the opendataservices plug-in to add support for Arcgis REST services."/>
+        <attribute name="Plugin-Icon" value="images/wfs.png"/>
+        <!--<attribute name="Plugin-Link" value="http://fixme.com"/>-->
+        <attribute name="Plugin-Mainversion" value="${plugin.main.version}"/>
+        <attribute name="Plugin-Version" value="${plugin.version}"/>
+        <attribute name="Plugin-Requires" value="opendataservices"/>
+        <attribute name="Plugin-Stage" value="45"/>
+      </manifest>
+		</jar>
+	</target>
+	<!--
+    **********************************************************
+    ** clean - clean up the build environment
+    **********************************************************
+    -->
+	<target name="clean">
+		<delete dir="${plugin.build.dir}" />
+		<delete file="${plugin.jar}" />
+	</target>
+	<!--
+    **********************************************************
+    ** install - install the plugin in your local JOSM installation
+    **********************************************************
+    -->
+	<target name="install" depends="dist">
+		<property environment="env" />
+		<condition property="josm.plugins.dir" value="${env.APPDATA}/JOSM/plugins" else="${user.home}/.josm/plugins">
+			<and>
+				<os family="windows" />
+			</and>
+		</condition>
+		<copy file="${plugin.jar}" todir="${josm.plugins.dir}" />
+	</target>
+	
+  <!--
+   **********************************************************
+   ** install4debug - install the debug plugin in the JOSM debug environment
+   **********************************************************
+   -->
+   <target name="install4debug" depends="dist">
+     <property environment="env"/>
+     <condition property="josm.plugins.dir" value="${env.APPDATA}/JOSM_ECLIPSE_ODS6/plugins" else="${user.home}/.josm_eclipse_ods6/plugins">
+       <and>
+         <os family="windows"/>
+       </and>
+     </condition>
+     <copy file="${plugin.jar}" todir="${josm.plugins.dir}"/>
+  </target>
+</project>

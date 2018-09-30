@@ -1,35 +1,28 @@
 package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
-import java.io.IOException;
-
 import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.plugins.ods.InitializationException;
 import org.openstreetmap.josm.plugins.ods.OdsFeatureSource;
-import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureTypeParser;
+import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureTypeFactory;
+import org.openstreetmap.josm.plugins.ods.arcgis.rest.model.AGRestFeatureLayer;
 import org.openstreetmap.josm.plugins.ods.metadata.MetaData;
-import org.openstreetmap.josm.tools.I18n;
 
 public class AGRestFeatureSource implements OdsFeatureSource {
-    private boolean initialized = false;
-    private boolean available = false;
+    private final boolean available = false;
     private final AGRestHost host;
-    private final String feature;
-    private final Long featureId;
-    private FeatureType featureType;
+    private final AGRestFeatureLayer featureLayer;
+    private final FeatureType featureType;
     private MetaData metaData;
 
-    public AGRestFeatureSource(AGRestHost host, String feature) {
+    public AGRestFeatureSource(AGRestHost host, AGRestFeatureLayer featureLayer) {
         super();
         this.host = host;
-        this.feature = feature;
-        String[] parts = feature.split("/");
-        this.featureId = Long.valueOf(parts[1]);
+        this.featureLayer = featureLayer;
+        this.featureType = FeatureTypeFactory.createFeatureType(featureLayer, null);
     }
 
-    @Override
-    public final AGRestHost getHost() {
+    public AGRestHost getHost() {
         return host;
     }
 
@@ -45,31 +38,15 @@ public class AGRestFeatureSource implements OdsFeatureSource {
 
     @Override
     public final String getFeatureName() {
-        return String.format("%s:%s", host.getName(), feature);
+        return String.format("%s:%s", host.getName(), featureLayer.getName());
+    }
+
+    public String getUrl() {
+        return host.getServiceUrl().toString() + "/" + getFeatureId().toString();
     }
 
     @Override
     public void initialize() {
-        if (initialized) return;
-        try (
-                HttpRequest request = new HttpRequest();
-                ) {
-            host.initialize();
-            metaData = host.getMetaData();
-            request.open("GET", host.getUrl() + "/" + featureId);
-            request.addParameter("f", "json");
-            HttpResponse response = request.send();
-            FeatureTypeParser parser = new FeatureTypeParser();
-            featureType = parser.parse(response.getInputStream(),
-                    host.getName());
-        } catch (IOException | InitializationException e ) {
-            String msg = I18n.tr("Feature ''{0}'' is not available from host ''{1}'' ({2})",
-                    featureId, host.getName(), host.getUrl().toString());
-            initialized = false;
-            throw new RuntimeException(msg);
-        }
-        initialized = true;
-        available = true;
         return;
     }
 
@@ -79,13 +56,17 @@ public class AGRestFeatureSource implements OdsFeatureSource {
         return metaData;
     }
 
+    public AGRestFeatureLayer getFeatureLayer() {
+        return featureLayer;
+    }
+
     public Long getFeatureId() {
-        return featureId;
+        return featureLayer.getId();
     }
 
     @Override
     public CoordinateReferenceSystem getCrs() {
-        return featureType.getGeometryDescriptor()
+        return getFeatureType().getGeometryDescriptor()
                 .getCoordinateReferenceSystem();
     }
 
@@ -97,7 +78,10 @@ public class AGRestFeatureSource implements OdsFeatureSource {
 
     @Override
     public Long getSRID() {
-        ReferenceIdentifier rid = getCrs().getIdentifiers().iterator().next();
-        return Long.parseLong(rid.getCode());
+        return new Long(featureLayer.getExtent().getSpatialReference().getWkid());
+    }
+
+    public Integer getMaxFeatures() {
+        return featureLayer.getMaxRecordCount();
     }
 }

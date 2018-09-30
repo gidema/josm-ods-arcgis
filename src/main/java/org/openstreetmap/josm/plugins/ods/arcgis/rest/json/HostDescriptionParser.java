@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Deprecated
 public class HostDescriptionParser {
     public static void parseHostJson(InputStream inputStream, AGRestHost host)
             throws JsonProcessingException, IOException {
@@ -37,6 +38,6 @@ public class HostDescriptionParser {
                 featureTypes.add(feature);
             }
         }
-        host.setFeatureTypes(featureTypes);
+        //        host.setFeatureTypes(featureTypes);
     }
 }

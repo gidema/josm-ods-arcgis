@@ -18,6 +18,7 @@ import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.GeometryType;
 import org.opengis.feature.type.Name;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
+import org.openstreetmap.josm.tools.I18n;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -48,8 +49,7 @@ public class FeatureCollectionParser {
     public FeatureCollectionParser(SimpleFeatureType featureType) {
         this.featureType = featureType;
         this.featureBuilder = new SimpleFeatureBuilder(featureType);
-        GeometryType geometryType = featureType.getGeometryDescriptor()
-                .getType();
+        GeometryType geometryType = featureType.getGeometryDescriptor().getType();
         this.geometryClass = geometryType.getBinding();
         Integer srid = CRSUtil
                 .getSrid(geometryType.getCoordinateReferenceSystem());
@@ -211,10 +211,20 @@ public class FeatureCollectionParser {
         return thePoints[0];
     }
 
-    private static void parseError(JsonNode node) throws IOException {
+    private void parseError(JsonNode node) throws IOException {
         JsonNode errorNode = node.get("error");
+        JsonNode nCode = errorNode.get("code");
+        String code;
+        String message;
+        if (nCode != null) {
+            code = nCode.asText();
+            message = errorNode.get("message").asText();
+            String error = I18n.tr("An error occured when trying to download ''{0}'':{1}-{2}." , featureType.getName(), code, message);
+            throw new IOException(error);
+        }
         JsonNode details = errorNode.get("details");
-        throw new IOException(details.toString());
+        String error = I18n.tr("An error occured when trying to download ''{0}'':{1}." , featureType.getName(), details.toString());
+        throw new IOException(error);
     }
 
     private static Coordinate parseCoordinate(JsonNode node) {

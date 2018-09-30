@@ -7,12 +7,9 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.openstreetmap.josm.plugins.ods.Host;
 import org.openstreetmap.josm.plugins.ods.Normalisation;
-import org.openstreetmap.josm.plugins.ods.OdsDataSource;
 import org.openstreetmap.josm.plugins.ods.crs.CRSException;
 import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
-import org.openstreetmap.josm.plugins.ods.entities.Entity;
 import org.openstreetmap.josm.plugins.ods.entities.opendata.FeatureDownloader;
 import org.openstreetmap.josm.plugins.ods.io.DownloadRequest;
 import org.openstreetmap.josm.plugins.ods.io.DownloadResponse;
@@ -27,11 +24,10 @@ import org.openstreetmap.josm.tools.Logging;
  *
  * @param <T>
  */
-public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
-    private final OdsDataSource dataSource;
+public class AGRestDownloader implements FeatureDownloader {
+    private final AGRestDataSource dataSource;
     private final CRSUtil crsUtil;
 
-    private AGRestFeatureSource featureSource;
     private DefaultFeatureCollection downloadedFeatures;
     private final FeatureParser parser;
     private DownloadRequest request;
@@ -39,7 +35,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
 
     private DownloadResponse response;
 
-    public AGRestDownloader(OdsDataSource dataSource, CRSUtil crsUtil, FeatureParser parser) {
+    public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil, FeatureParser parser) {
         this.crsUtil = crsUtil;
         this.dataSource = dataSource;
         this.parser = parser;
@@ -62,22 +58,20 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
 
     @Override
     public void prepare() {
-        featureSource = (AGRestFeatureSource) dataSource
-                .getOdsFeatureSource();
-        return;
+        // Nothing to prepare
     }
 
     @Override
     public void download() {
         downloadedFeatures = new DefaultFeatureCollection();
+        // Clone the query, so we can set the boundary
         RestQuery query;
         try {
             query = getQuery();
         } catch (CRSException e) {
             throw new RuntimeException(e);
         }
-        AGRestReader reader = new AGRestReader(query,
-                featureSource.getFeatureType());
+        AGRestReader reader = new AGRestReader(dataSource, query);
         try (SimpleFeatureIterator it = reader.getFeatures().features();) {
             while (it.hasNext() && !Thread.currentThread().isInterrupted()) {
                 downloadedFeatures.add(it.next());
@@ -95,9 +89,7 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
                     I18n.tr("The selected download area contains no {0} objects.",
                             featureType));
         } else {
-            Host host = dataSource.getOdsFeatureSource().getHost();
-            host.getMaxFeatures();
-            Integer maxFeatures = host.getMaxFeatures();
+            Integer maxFeatures = dataSource.getFeatureSource().getMaxFeatures();
             if (maxFeatures != null
                     && downloadedFeatures.size() >= maxFeatures) {
                 String featureType = dataSource.getFeatureType();
@@ -119,12 +111,10 @@ public class AGRestDownloader<T extends Entity> implements FeatureDownloader {
     }
 
     private RestQuery getQuery() throws CRSException {
-        RestQuery query = new RestQuery();
-        query.setFeatureSource(featureSource);
-        query.setInSR(featureSource.getSRID());
-        query.setOutSR(featureSource.getSRID());
-        query.setGeometry(formatBounds(query.getInSR()));
-        query.setOutFields("*");
+        RestQuery query = dataSource.getQuery();
+        Long srid = dataSource.getFeatureSource().getSRID();
+        query.setInSR(srid);
+        query.setGeometry(formatBounds(srid));
         return query;
     }
 

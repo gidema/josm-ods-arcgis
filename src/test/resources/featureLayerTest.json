@@ -1,0 +1,356 @@
+{
+ "currentVersion": 10.31,
+ "id": 2,
+ "name": "Spoortak",
+ "type": "Feature Layer",
+ "description": "",
+ "geometryType": "esriGeometryPolyline",
+ "copyrightText": "",
+ "parentLayer": null,
+ "subLayers": [],
+ "minScale": 400000,
+ "maxScale": 0,
+ "drawingInfo": {
+  "renderer": {
+   "type": "simple",
+   "symbol": {
+    "type": "esriSLS",
+    "style": "esriSLSSolid",
+    "color": [
+     91,
+     144,
+     255,
+     255
+    ],
+    "width": 1.2
+   },
+   "label": "",
+   "description": ""
+  },
+  "transparency": 0,
+  "labelingInfo": null
+ },
+ "defaultVisibility": true,
+ "extent": {
+  "xmin": 0,
+  "ymin": 300000,
+  "xmax": 285000,
+  "ymax": 625000,
+  "spatialReference": {
+   "wkid": 28992,
+   "latestWkid": 28992
+  }
+ },
+ "hasAttachments": false,
+ "htmlPopupType": "esriServerHTMLPopupTypeAsHTMLText",
+ "displayField": "SPOORTAKNAAM",
+ "typeIdField": null,
+ "fields": [
+  {
+   "name": "ID",
+   "type": "esriFieldTypeOID",
+   "alias": "ID",
+   "domain": null
+  },
+  {
+   "name": "VERSIE",
+   "type": "esriFieldTypeString",
+   "alias": "VERSIE",
+   "length": 5,
+   "domain": null
+  },
+  {
+   "name": "SPOORTAKNAAM",
+   "type": "esriFieldTypeString",
+   "alias": "SPOORTAKNAAM",
+   "length": 50,
+   "domain": null
+  },
+  {
+   "name": "SPOORFUNCTIE",
+   "type": "esriFieldTypeString",
+   "alias": "SPOORFUNCTIE",
+   "length": 1,
+   "domain": null
+  },
+  {
+   "name": "BEHEERDER",
+   "type": "esriFieldTypeString",
+   "alias": "BEHEERDER",
+   "length": 100,
+   "domain": null
+  },
+  {
+   "name": "GEOCODE",
+   "type": "esriFieldTypeString",
+   "alias": "GEOCODE",
+   "length": 10,
+   "domain": null
+  },
+  {
+   "name": "SUBCODE",
+   "type": "esriFieldTypeString",
+   "alias": "SUBCODE",
+   "length": 1,
+   "domain": null
+  },
+  {
+   "name": "GEOCODE_NR",
+   "type": "esriFieldTypeSmallInteger",
+   "alias": "GEOCODE_NR",
+   "domain": null
+  },
+  {
+   "name": "GEOSUBCODE",
+   "type": "esriFieldTypeString",
+   "alias": "GEOSUBCODE",
+   "length": 10,
+   "domain": null
+  },
+  {
+   "name": "GEOCODE_NAAM",
+   "type": "esriFieldTypeString",
+   "alias": "GEOCODE_NAAM",
+   "length": 100,
+   "domain": null
+  },
+  {
+   "name": "KMLINT",
+   "type": "esriFieldTypeString",
+   "alias": "KMLINT",
+   "length": 20,
+   "domain": null
+  },
+  {
+   "name": "KMLINT_OMSCHRIJVING",
+   "type": "esriFieldTypeString",
+   "alias": "KMLINT_OMSCHRIJVING",
+   "length": 80,
+   "domain": null
+  },
+  {
+   "name": "KM_GEOCODE_VAN",
+   "type": "esriFieldTypeDouble",
+   "alias": "KM_GEOCODE_VAN",
+   "domain": null
+  },
+  {
+   "name": "KM_GEOCODE_VAN_T",
+   "type": "esriFieldTypeString",
+   "alias": "KM_GEOCODE_VAN_T",
+   "length": 14,
+   "domain": null
+  },
+  {
+   "name": "KM_GEOCODE_TOT",
+   "type": "esriFieldTypeDouble",
+   "alias": "KM_GEOCODE_TOT",
+   "domain": null
+  },
+  {
+   "name": "KM_GEOCODE_TOT_T",
+   "type": "esriFieldTypeString",
+   "alias": "KM_GEOCODE_TOT_T",
+   "length": 14,
+   "domain": null
+  },
+  {
+   "name": "OFFSETBEGIN",
+   "type": "esriFieldTypeDouble",
+   "alias": "OFFSETBEGIN",
+   "domain": null
+  },
+  {
+   "name": "OFFSETBEGIN_T",
+   "type": "esriFieldTypeString",
+   "alias": "OFFSETBEGIN_T",
+   "length": 14,
+   "domain": null
+  },
+  {
+   "name": "OFFSETEIND",
+   "type": "esriFieldTypeDouble",
+   "alias": "OFFSETEIND",
+   "domain": null
+  },
+  {
+   "name": "OFFSETEIND_T",
+   "type": "esriFieldTypeString",
+   "alias": "OFFSETEIND_T",
+   "length": 14,
+   "domain": null
+  },
+  {
+   "name": "REGIO_NAAM",
+   "type": "esriFieldTypeString",
+   "alias": "REGIO_NAAM",
+   "length": 40,
+   "domain": null
+  },
+  {
+   "name": "REGIO_AFKORTING",
+   "type": "esriFieldTypeString",
+   "alias": "REGIO_AFKORTING",
+   "length": 2,
+   "domain": null
+  },
+  {
+   "name": "CONTRACTGEBIED_NR",
+   "type": "esriFieldTypeInteger",
+   "alias": "CONTRACTGEBIED_NR",
+   "domain": null
+  },
+  {
+   "name": "CONTRACTGEBIED_NAAM",
+   "type": "esriFieldTypeString",
+   "alias": "CONTRACTGEBIED_NAAM",
+   "length": 40,
+   "domain": null
+  },
+  {
+   "name": "CONTRACTGEBIED_TYPE",
+   "type": "esriFieldTypeString",
+   "alias": "CONTRACTGEBIED_TYPE",
+   "length": 12,
+   "domain": null
+  },
+  {
+   "name": "PGO_GEBIED_NAAM",
+   "type": "esriFieldTypeString",
+   "alias": "PGO_GEBIED_NAAM",
+   "length": 50,
+   "domain": null
+  },
+  {
+   "name": "X_BEGIN",
+   "type": "esriFieldTypeDouble",
+   "alias": "X_BEGIN",
+   "domain": null
+  },
+  {
+   "name": "Y_BEGIN",
+   "type": "esriFieldTypeDouble",
+   "alias": "Y_BEGIN",
+   "domain": null
+  },
+  {
+   "name": "LATITUDE_BEGIN",
+   "type": "esriFieldTypeDouble",
+   "alias": "LATITUDE_BEGIN",
+   "domain": null
+  },
+  {
+   "name": "LONGITUDE_BEGIN",
+   "type": "esriFieldTypeDouble",
+   "alias": "LONGITUDE_BEGIN",
+   "domain": null
+  },
+  {
+   "name": "X_EIND",
+   "type": "esriFieldTypeDouble",
+   "alias": "X_EIND",
+   "domain": null
+  },
+  {
+   "name": "Y_EIND",
+   "type": "esriFieldTypeDouble",
+   "alias": "Y_EIND",
+   "domain": null
+  },
+  {
+   "name": "LATITUDE_EIND",
+   "type": "esriFieldTypeDouble",
+   "alias": "LATITUDE_EIND",
+   "domain": null
+  },
+  {
+   "name": "LONGITUDE_EIND",
+   "type": "esriFieldTypeDouble",
+   "alias": "LONGITUDE_EIND",
+   "domain": null
+  },
+  {
+   "name": "LENGTE",
+   "type": "esriFieldTypeDouble",
+   "alias": "LENGTE",
+   "domain": null
+  },
+  {
+   "name": "LRS_GC",
+   "type": "esriFieldTypeGeometry",
+   "alias": "LRS_GC",
+   "domain": null
+  },
+  {
+   "name": "SPOORTAK_IDENTIFICATIE_OUD",
+   "type": "esriFieldTypeString",
+   "alias": "SPOORTAK_IDENTIFICATIE_OUD",
+   "length": 50,
+   "domain": null
+  },
+  {
+   "name": "TECHNIEKVELD",
+   "type": "esriFieldTypeString",
+   "alias": "TECHNIEKVELD",
+   "length": 12,
+   "domain": null
+  },
+  {
+   "name": "ONDERHOUDSREGIO_NAAM",
+   "type": "esriFieldTypeString",
+   "alias": "ONDERHOUDSREGIO_NAAM",
+   "length": 40,
+   "domain": null
+  },
+  {
+   "name": "ONDERHOUDSREGIO_AFKORTING",
+   "type": "esriFieldTypeString",
+   "alias": "ONDERHOUDSREGIO_AFKORTING",
+   "length": 2,
+   "domain": null
+  },
+  {
+   "name": "PUIC",
+   "type": "esriFieldTypeString",
+   "alias": "PUIC",
+   "length": 100,
+   "domain": null
+  },
+  {
+   "name": "PUIC_SPOORTAK",
+   "type": "esriFieldTypeString",
+   "alias": "PUIC_SPOORTAK",
+   "length": 100,
+   "domain": null
+  },
+  {
+   "name": "NAAM_LANG",
+   "type": "esriFieldTypeString",
+   "alias": "NAAM_LANG",
+   "length": 30,
+   "domain": null
+  }
+ ],
+ "relationships": [],
+ "canModifyLayer": false,
+ "canScaleSymbols": false,
+ "hasLabels": false,
+ "capabilities": "Map,Query,Data",
+ "maxRecordCount": 1000,
+ "supportsStatistics": true,
+ "supportsAdvancedQueries": true,
+ "hasM": true,
+ "supportedQueryFormats": "JSON, AMF",
+ "ownershipBasedAccessControlForFeatures": {"allowOthersToQuery": true},
+ "useStandardizedQueries": true,
+ "advancedQueryCapabilities": {
+  "useStandardizedQueries": true,
+  "supportsStatistics": true,
+  "supportsOrderBy": true,
+  "supportsDistinct": true,
+  "supportsPagination": true,
+  "supportsTrueCurve": true,
+  "supportsReturningQueryExtent": true,
+  "supportsQueryWithDistance": true
+ }
+}

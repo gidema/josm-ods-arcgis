@@ -5,18 +5,18 @@ import java.net.MalformedURLException;
 
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.json.FeatureCollectionParser;
 
 public class AGRestReader {
     private final RestQuery query;
     private final FeatureCollectionParser parser;
+    private final AGRestDataSource dataSource;
 
-    public AGRestReader(RestQuery query, FeatureType featureType) {
-        super();
+    public AGRestReader(AGRestDataSource dataSource, RestQuery query) {
         this.query = query;
-        this.parser = new FeatureCollectionParser(
-                (SimpleFeatureType) featureType);
+        this.dataSource = dataSource;
+        SimpleFeatureType featureType = dataSource.getFeatureType(query.getOutSR());
+        this.parser = new FeatureCollectionParser(featureType);
     }
 
     public SimpleFeatureCollection getFeatures()
@@ -24,9 +24,9 @@ public class AGRestReader {
         try (
                 HttpRequest request = new HttpRequest();
                 ) {
-            AGRestFeatureSource featureSource = query.getFeatureSource();
+            AGRestFeatureSource featureSource = dataSource.getFeatureSource();
             String url = String.format("%s/%d/query",
-                    featureSource.getHost().getUrl(),
+                    featureSource.getHost().getServiceUrl(),
                     featureSource.getFeatureId());
             request.open("GET", url);
             request.addParameter("f", "json");
@@ -44,10 +44,10 @@ public class AGRestReader {
             if (query.getOutSR() != null) {
                 request.addParameter("outSR", query.getOutSR().toString());
             }
-            HttpResponse response = request.send();
-            SimpleFeatureCollection features = parser
-                    .parse(response.getInputStream());
-            response.close();
+            SimpleFeatureCollection features;
+            try (HttpResponse response = request.send()) {
+                features = parser.parse(response.getInputStream());
+            }
             return features;
         } catch (MalformedURLException e) {
             throw new ArcgisServerRestException(e);

@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.ods.arcgis.rest.json;
+package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +11,8 @@ import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.util.SimpleInternationalString;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.openstreetmap.josm.plugins.ods.arcgis.rest.EsriGeometryType;
+import org.opengis.feature.type.FeatureType;
+import org.openstreetmap.josm.plugins.ods.arcgis.rest.model.EsriGeometryType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,10 +40,23 @@ public class FeatureTypeParser {
         esriTypeMap.put("esriFieldTypeGlobalID", String.class);
     }
 
+
+    public FeatureType parse(String featureTypeJson, String namePrefix)
+            throws JsonProcessingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(featureTypeJson);
+        return parseNode(node, namePrefix);
+    }
+
+
     public SimpleFeatureType parse(InputStream inputStream, String namePrefix)
             throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(inputStream);
+        return parseNode(node, namePrefix);
+    }
+
+    private SimpleFeatureType parseNode(JsonNode node, String namePrefix) {
         String name = node.get("name").textValue();
         Long id = node.get("id").longValue();
         String description = node.get("description").textValue();

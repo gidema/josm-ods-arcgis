@@ -21,14 +21,11 @@ public class HttpRequest implements AutoCloseable {
     private String method = "GET";
     private String url;
     private final Map<String, String> parameters = new HashMap<>();
-    private final boolean asynchronous = false;
     private boolean acceptCompression = true;
     private int connectTimeout = 15;
     private final String user = null;
     private final String password = null;
-    private boolean cancel;
     private HttpURLConnection connection;
-    private HttpResponse response;
 
     public HttpRequest() {
         super();
@@ -57,11 +54,11 @@ public class HttpRequest implements AutoCloseable {
         }
     }
 
-    public HttpResponse send() {
+    public HttpResponse send() throws IOException {
         return send(null);
     }
 
-    public HttpResponse send(String postData) {
+    public HttpResponse send(String postData) throws IOException {
         try {
             URL requestURL = buildUrl();
             // TODO add logger
@@ -92,12 +89,10 @@ public class HttpRequest implements AutoCloseable {
                 }
             }
             return new HttpResponse(this);
-        } catch (Exception e) {
+        } finally {
             if (connection != null) {
                 connection.disconnect();
             }
-            e.printStackTrace();
-            return null;
         }
     }
 

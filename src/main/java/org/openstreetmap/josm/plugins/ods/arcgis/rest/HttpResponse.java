@@ -3,28 +3,19 @@ package org.openstreetmap.josm.plugins.ods.arcgis.rest;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class HttpResponse {
-  private final HttpRequest request;
-  private final InputStream inputStream;
-  
-  public HttpResponse(HttpRequest request) throws IOException {
-    this.request = request;
-    this.inputStream = request.getInputStream();
-  }
-  
-  public InputStream getInputStream() {
-    return inputStream;
-  }
-  
-  public void close() {
-    if (inputStream != null) {
-      try {
-        inputStream.close();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+public class HttpResponse implements AutoCloseable {
+    private final HttpRequest request;
+
+    public HttpResponse(HttpRequest request) {
+        this.request = request;
     }
-    request.close();
-  }
+
+    public InputStream getInputStream() throws IOException {
+        return request.getInputStream();
+    }
+
+    @Override
+    public void close() {
+        request.close();
+    }
 }
