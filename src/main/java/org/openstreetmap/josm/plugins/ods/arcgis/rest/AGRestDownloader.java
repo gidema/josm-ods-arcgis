@@ -26,7 +26,6 @@ import org.openstreetmap.josm.tools.Logging;
  */
 public class AGRestDownloader implements FeatureDownloader {
     private final AGRestDataSource dataSource;
-    private final CRSUtil crsUtil;
 
     private DefaultFeatureCollection downloadedFeatures;
     private final FeatureParser parser;
@@ -35,8 +34,7 @@ public class AGRestDownloader implements FeatureDownloader {
 
     private DownloadResponse response;
 
-    public AGRestDownloader(AGRestDataSource dataSource, CRSUtil crsUtil, FeatureParser parser) {
-        this.crsUtil = crsUtil;
+    public AGRestDownloader(AGRestDataSource dataSource, FeatureParser parser) {
         this.dataSource = dataSource;
         this.parser = parser;
     }
@@ -119,6 +117,7 @@ public class AGRestDownloader implements FeatureDownloader {
     }
 
     private String formatBounds(Long srid) throws CRSException {
+        CRSUtil crsUtil = CRSUtil.getInstance();
         CoordinateReferenceSystem crs = CRSUtil.getCrs(srid);
         ReferencedEnvelope envelope = crsUtil.createBoundingBox(crs,
                 request.getBoundary().getBounds());

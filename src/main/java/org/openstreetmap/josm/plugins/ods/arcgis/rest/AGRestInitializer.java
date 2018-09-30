@@ -15,7 +15,6 @@ import org.openstreetmap.josm.plugins.ods.arcgis.rest.config.DLConfig;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.config.DSConfig;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.config.FSConfig;
 import org.openstreetmap.josm.plugins.ods.arcgis.rest.config.HostConfig;
-import org.openstreetmap.josm.plugins.ods.crs.CRSUtil;
 import org.openstreetmap.josm.plugins.ods.util.MessageBuilder;
 import org.openstreetmap.josm.tools.Logging;
 
@@ -30,7 +29,7 @@ public class AGRestInitializer {
 
     private List<AGRestDownloader> downloaders;
 
-    public void initialize(AGRestConfig config, CRSUtil crsUtil)
+    public void initialize(AGRestConfig config)
             throws IOException {
         config.getDownloaders().forEach(dlConfig -> {
             dsConfigs.add(dlConfig.getDsConfig());
@@ -50,7 +49,7 @@ public class AGRestInitializer {
             Logging.warn(message);
             System.out.println(message);
         }
-        this.downloaders = createDownloaders(config, crsUtil);
+        this.downloaders = createDownloaders(config);
     }
 
     public List<AGRestDownloader> getDownloaders() {
@@ -113,14 +112,12 @@ public class AGRestInitializer {
         return result;
     }
 
-    private List<AGRestDownloader> createDownloaders(AGRestConfig config,
-            CRSUtil crsUtil) {
+    private List<AGRestDownloader> createDownloaders(AGRestConfig config) {
         List<AGRestDownloader> result = new ArrayList<>(config.getDownloaders().size());
         for (DLConfig dlConfig : config.getDownloaders()) {
             DSConfig dsConfig = dlConfig.getDsConfig();
             AGRestDataSource ds = dataSources.get(dsConfig);
-            result.add(new AGRestDownloader(ds, crsUtil,
-                    dlConfig.getFeatureParser()));
+            result.add(new AGRestDownloader(ds, dlConfig.getFeatureParser()));
         }
         return result;
     }

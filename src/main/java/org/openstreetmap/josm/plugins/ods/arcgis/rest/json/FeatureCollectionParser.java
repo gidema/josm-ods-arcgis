@@ -51,8 +51,7 @@ public class FeatureCollectionParser {
         this.featureBuilder = new SimpleFeatureBuilder(featureType);
         GeometryType geometryType = featureType.getGeometryDescriptor().getType();
         this.geometryClass = geometryType.getBinding();
-        Integer srid = CRSUtil
-                .getSrid(geometryType.getCoordinateReferenceSystem());
+        Integer srid = CRSUtil.getSrid(geometryType.getCoordinateReferenceSystem());
         PrecisionModel precisionModel = new PrecisionModel();
         this.geoFactory = new GeometryFactory(precisionModel, srid);
     }
